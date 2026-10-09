@@ -1,0 +1,212 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-panel: var(--panel);
+  --color-panel-raised: var(--panel-raised);
+  --color-variation: var(--variation);
+  --color-eval-white: var(--eval-white);
+  --color-eval-black: var(--eval-black);
+  --color-cls-brilliant: var(--cls-brilliant);
+  --color-cls-great: var(--cls-great);
+  --color-cls-best: var(--cls-best);
+  --color-cls-excellent: var(--cls-excellent);
+  --color-cls-good: var(--cls-good);
+  --color-cls-book: var(--cls-book);
+  --color-cls-inaccuracy: var(--cls-inaccuracy);
+  --color-cls-mistake: var(--cls-mistake);
+  --color-cls-blunder: var(--cls-blunder);
+  --color-cls-missed-win: var(--cls-missed-win);
+}
+
+:root {
+  --radius: 0.375rem;
+  --background: oklch(0.165 0.006 255);
+  --foreground: oklch(0.93 0.005 255);
+  --panel: oklch(0.205 0.007 255);
+  --panel-raised: oklch(0.245 0.008 255);
+  --card: var(--panel);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.23 0.008 255);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.8 0.14 78);
+  --primary-foreground: oklch(0.18 0.02 70);
+  --secondary: oklch(0.27 0.008 255);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.26 0.007 255);
+  --muted-foreground: oklch(0.66 0.012 255);
+  --accent: oklch(0.29 0.01 255);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.63 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.29 0.008 255);
+  --input: oklch(0.31 0.008 255);
+  --ring: oklch(0.8 0.14 78 / 60%);
+  --variation: oklch(0.72 0.11 230);
+  --eval-white: oklch(0.95 0.004 90);
+  --eval-black: oklch(0.27 0.006 255);
+
+  --cls-brilliant: oklch(0.74 0.13 190);
+  --cls-great: oklch(0.66 0.14 252);
+  --cls-best: oklch(0.73 0.17 145);
+  --cls-excellent: oklch(0.72 0.13 140);
+  --cls-good: oklch(0.68 0.07 150);
+  --cls-book: oklch(0.68 0.06 65);
+  --cls-inaccuracy: oklch(0.84 0.15 95);
+  --cls-mistake: oklch(0.74 0.16 58);
+  --cls-blunder: oklch(0.63 0.21 25);
+  --cls-missed-win: oklch(0.66 0.17 10);
+
+  --arrow-best: oklch(0.72 0.17 145 / 0.82);
+  --arrow-played: oklch(0.72 0.11 230 / 0.7);
+
+  --sq-light: oklch(0.9 0.04 85);
+  --sq-dark: oklch(0.62 0.07 60);
+  --sq-last: oklch(0.85 0.15 100 / 0.45);
+  --sq-select: oklch(0.8 0.14 78 / 0.55);
+  --sq-check: oklch(0.6 0.22 25 / 0.85);
+  --sq-dot: oklch(0.15 0.01 255 / 0.28);
+}
+
+[data-board-theme="dark"] {
+  --sq-light: oklch(0.6 0.012 255);
+  --sq-dark: oklch(0.4 0.012 255);
+  --sq-last: oklch(0.75 0.12 80 / 0.45);
+}
+[data-board-theme="green"] {
+  --sq-light: oklch(0.93 0.04 120);
+  --sq-dark: oklch(0.57 0.09 140);
+  --sq-last: oklch(0.88 0.16 105 / 0.55);
+}
+[data-board-theme="blue"] {
+  --sq-light: oklch(0.9 0.025 240);
+  --sq-dark: oklch(0.58 0.07 245);
+  --sq-last: oklch(0.82 0.12 200 / 0.5);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+}
+
+@utility sq-light {
+  background-color: var(--sq-light);
+}
+@utility sq-dark {
+  background-color: var(--sq-dark);
+}
+@utility sq-last {
+  background-color: var(--sq-last);
+}
+@utility sq-select {
+  background-color: var(--sq-select);
+}
+@utility sq-check {
+  background: radial-gradient(circle, var(--sq-check) 0%, transparent 72%);
+}
+@utility sq-dot {
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 30%;
+    height: 30%;
+    transform: translate(-50%, -50%);
+    border-radius: 9999px;
+    background: var(--sq-dot);
+  }
+}
+@utility sq-ring {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 0.35rem solid var(--sq-dot);
+  }
+}
+@utility panel {
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+@utility brilliant-glow {
+  box-shadow:
+    0 0 0 1px var(--color-cls-brilliant),
+    0 0 18px -4px var(--color-cls-brilliant);
+}
+
+/* Round classification badge (move list, insight, board). Color supplied inline from --cls-* tokens. */
+@utility cls-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 800;
+  line-height: 1;
+  color: oklch(0.99 0 0);
+  letter-spacing: -0.04em;
+  text-shadow: 0 1px 1px oklch(0 0 0 / 0.4);
+  background-image: linear-gradient(180deg, oklch(1 0 0 / 0.28), oklch(0 0 0 / 0.12));
+  box-shadow:
+    0 2px 5px oklch(0 0 0 / 0.5),
+    inset 0 -2px 0 oklch(0 0 0 / 0.18),
+    0 0 0 2px oklch(1 0 0 / 0.95);
+  pointer-events: none;
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  70% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@utility badge-pop {
+  animation: badge-pop 260ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
