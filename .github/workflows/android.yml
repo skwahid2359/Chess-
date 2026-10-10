@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-  workflow_dispatch:   # GitHub pe "Run workflow" button se bhi chala sakte ho
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,8 +24,10 @@ jobs:
 
       - name: Install Android SDK platforms
         run: |
-          yes | sdkmanager --licenses > /dev/null
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -1)
+          echo "Using: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
