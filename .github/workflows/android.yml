@@ -22,10 +22,15 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Check Java
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+          javac -version
+
       - name: Install Android SDK platforms
         run: |
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -1)
-          echo "Using: $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
 
@@ -33,6 +38,8 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build APK
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
           chmod +x android/gradlew
           npm run android:apk
