@@ -76,6 +76,7 @@ export type Classification =
   | "excellent"
   | "good"
   | "book"
+  | "forced"
   | "inaccuracy"
   | "mistake"
   | "blunder"

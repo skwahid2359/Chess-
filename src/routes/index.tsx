@@ -37,6 +37,7 @@ const CLS_TEXT: Record<Classification, string> = {
   excellent: "text-cls-excellent",
   good: "text-cls-good",
   book: "text-cls-book",
+  forced: "text-cls-book",
   inaccuracy: "text-cls-inaccuracy",
   mistake: "text-cls-mistake",
   blunder: "text-cls-blunder",
