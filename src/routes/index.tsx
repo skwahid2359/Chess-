@@ -416,11 +416,23 @@ const fmtAcc = (n: number) => (isNaN(n) ? "–" : n.toFixed(1));
 
 function MoveList({ a }: { a: AnalysisApi }) {
   const ref = useRef<HTMLDivElement>(null);
+  const lastKey = useRef("");
   useEffect(() => {
-    ref.current
-      ?.querySelector("[data-current=true]")
-      ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [a.ply, a.variation]);
+    // Act only when the selected move really changes, not on every re-render
+    // (review progress re-renders the page many times while analysis runs).
+    const key = `${a.inVariation}|${a.ply}|${a.varPos}`;
+    if (key === lastKey.current) return;
+    lastKey.current = key;
+    const box = ref.current;
+    const cur = box?.querySelector<HTMLElement>("[data-current=true]");
+    if (!box || !cur) return;
+    // Scroll ONLY the move-list box. scrollIntoView would also scroll the whole page.
+    const b = box.getBoundingClientRect();
+    const c = cur.getBoundingClientRect();
+    if (c.top < b.top || c.bottom > b.bottom) {
+      box.scrollTop += c.top - b.top - b.height / 2 + c.height / 2;
+    }
+  }, [a.inVariation, a.ply, a.varPos]);
   const rows: { num: number; w?: MoveNode; b?: MoveNode }[] = [];
   a.mainline.forEach((m) => {
     if (m.color === "w" || !rows.length) rows.push({ num: m.moveNumber, [m.color]: m });

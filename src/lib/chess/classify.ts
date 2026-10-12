@@ -65,7 +65,10 @@ function sacrifice(m: MoveNode): { piece: string } | null {
   const defenders = c.attackers(to, m.color);
   const v = VALUE[m.piece];
   const gained = m.captured ? VALUE[m.captured] : 0;
-  const cheapest = Math.min(...attackers.map((sq) => VALUE[c.get(sq)?.type ?? "k"] || 99));
+  // A king can only capture an UNdefended piece, so ignore it when the piece is defended.
+  const capturers = attackers.filter((sq) => c.get(sq)?.type !== "k" || !defenders.length);
+  if (!capturers.length) return null;
+  const cheapest = Math.min(...capturers.map((sq) => VALUE[c.get(sq)?.type ?? "k"]));
   // If defended, the opponent only gains by taking with a cheaper piece.
   const net = defenders.length ? Math.min(v - gained, v - cheapest) : v - gained;
   // A lone pawn push left en prise is too common to count as a sacrifice.
@@ -83,6 +86,12 @@ function legalMoveCount(fen: string): number {
   } catch {
     return 0;
   }
+}
+
+/** True when the engine shows a forced mate in favour of `color`. */
+function matesFor(score: Score, color: "w" | "b"): boolean {
+  if (score.mate === undefined) return false;
+  return color === "w" ? score.mate > 0 : score.mate < 0;
 }
 
 function bestScore(r?: EngineResult | null, term?: Score | null): Score | undefined {
@@ -122,7 +131,24 @@ export function classifyMove(
   let cls: Classification;
   let explanation: string | undefined;
 
-  if (isBook && loss < THRESHOLDS.inaccuracy) {
+  // Brilliant is checked BEFORE Book: a sound sacrifice is special even if it is in opening theory.
+  const sac = isBest ? sacrifice(m) : null;
+  const secondGap2 = second ? wa - moverWin(second.score, m.color) : 0;
+  const brilliantOk =
+    !!sac &&
+    sac.piece !== "pawn" &&
+    !!second &&
+    loss <= THRESHOLDS.brilliantMaxLoss &&
+    wa >= 45 &&
+    wb < 92 &&
+    // Win% saturates at 100 for mate lines, so allow it when the sacrifice mates for the mover.
+    (wa <= 97 || matesFor(sa, m.color)) &&
+    secondGap2 >= THRESHOLDS.brilliantGap;
+
+  if (brilliantOk) {
+    cls = "brilliant";
+    explanation = `${m.san} sacrifices the ${sac!.piece}, yet the engine's best line keeps the evaluation at ${formatScore(sa)}. The next-best option${s2 ? ` (${s2})` : ""} scores only ${formatScore(second!.score)}, so the sacrifice is the clearly strongest resource.`;
+  } else if (isBook && loss < THRESHOLDS.inaccuracy) {
     cls = "book";
   } else if (legalMoveCount(m.fenBefore) === 1) {
     // Only one legal move existed: nothing to grade (chess.com shows this as "Forced").
@@ -136,40 +162,23 @@ export function classifyMove(
   else if (loss >= THRESHOLDS.inaccuracy) cls = "inaccuracy";
   else if (isBest) {
     cls = "best";
-    const sac = sacrifice(m);
-
-    // Brilliant: a real piece sacrifice that is the engine's top move AND clearly better than the
-    // 2nd-best line AND leaves the mover not losing. All conditions must hold.
-    const isBrilliant =
-      sac &&
-      sac.piece !== "pawn" &&
-      second &&
-      loss <= THRESHOLDS.brilliantMaxLoss &&
-      wa >= 45 &&
-      wb < 92 &&
-      wa <= 97 &&
-      secondGap >= THRESHOLDS.brilliantGap;
-
     // Great: the only good move, OR it turns a losing position into an equal one,
     // OR it turns an equal position into a winning one.
-    const onlyMove = second && secondGap >= THRESHOLDS.greatGap && wb < 95 && wa >= THRESHOLDS.equalFrom;
+    const onlyMove = second && secondGap2 >= THRESHOLDS.greatGap && wb < 95 && wa >= THRESHOLDS.equalFrom;
     const losingToEqual = wb < THRESHOLDS.losingBelow && wa >= THRESHOLDS.equalAbove;
     const equalToWinning =
       wb >= THRESHOLDS.equalFrom && wb <= THRESHOLDS.equalTo && wa >= THRESHOLDS.winningAt;
-    const punishesError = second && gift >= THRESHOLDS.punishGift && secondGap >= 5 && wb < 95;
+    const punishesError = second && gift >= THRESHOLDS.punishGift && secondGap2 >= 5 && wb < 95;
 
-    if (isBrilliant) {
-      cls = "brilliant";
-      explanation = `${m.san} sacrifices the ${sac!.piece}, yet the engine's best line keeps the evaluation at ${fmtA(sa)}. The next-best option${s2 ? ` (${s2})` : ""} scores only ${formatScore(second!.score)}, so the sacrifice is the clearly strongest resource.`;
-    } else if (losingToEqual) {
+    if (losingToEqual) {
       cls = "great";
-      explanation = `${m.san} turns a losing position (${formatScore(sb)}) into an equal one (${fmtA(sa)}).`;
+      explanation = `${m.san} turns a losing position (${formatScore(sb)}) into an equal one (${formatScore(sa)}).`;
     } else if (equalToWinning) {
       cls = "great";
-      explanation = `${m.san} turns an equal position into a winning one (${fmtA(sa)}).`;
+      explanation = `${m.san} turns an equal position into a winning one (${formatScore(sa)}).`;
     } else if (onlyMove) {
       cls = "great";
-      explanation = `Only move that holds the evaluation: the next-best option${s2 ? ` (${s2})` : ""} scores ${formatScore(second!.score)} instead of ${fmtA(sa)}.`;
+      explanation = `Only move that holds the evaluation: the next-best option${s2 ? ` (${s2})` : ""} scores ${formatScore(second!.score)} instead of ${formatScore(sa)}.`;
     } else if (punishesError) {
       cls = "great";
       explanation = `Punishes the opponent's error: the next-best option${s2 ? ` (${s2})` : ""} scores only ${formatScore(second!.score)}.`;
@@ -193,11 +202,6 @@ export function classifyMove(
     bestPvSan,
     explanation,
   };
-}
-
-/** Formats the mover-independent evaluation for explanation text. */
-function fmtA(s: Score) {
-  return formatScore(s);
 }
 
 function explainError(

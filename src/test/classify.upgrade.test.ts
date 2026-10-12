@@ -43,3 +43,22 @@ describe("opening book", () => {
     expect(hit!.eco).toMatch(/^B\d\d$/);
   });
 });
+
+describe("brilliant beats book (Fried Liver 6.Nxf7)", () => {
+  it("a sound knight sacrifice in theory is still Brilliant", () => {
+    const c = new Chess();
+    for (const san of "e4 e5 Nf3 Nc6 Bc4 Nf6 Ng5 d5 exd5 Nxd5".split(" ")) c.move(san);
+    const m = toNode(c.move("Nxf7"), 0); // knight sacrifice, marked as Book by the opening DB
+    const before: EngineResult = {
+      fen: m.fenBefore,
+      depth: 18,
+      lines: [
+        { multipv: 1, depth: 18, score: { cp: 300 }, pv: ["g5f7"] },
+        { multipv: 2, depth: 18, score: { cp: -100 }, pv: ["d1e2"] },
+      ],
+    };
+    const after = res(m.fenAfter, 400, "e8f7");
+    const r = classifyMove(m, before, null, after, null, true)!; // isBook = true
+    expect(r.classification).toBe("brilliant");
+  });
+});
